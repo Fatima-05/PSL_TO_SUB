@@ -11,6 +11,7 @@ from PIL import Image, ImageDraw, ImageFont
 print("Loading PSL model...")
 model = tf.keras.models.load_model("psl_alphabet_model.h5")
 
+
 class_names_default = [
     'ء', 'ا', 'ب', 'ت', 'ث', 'ج', 'ح', 'خ', 'د', 'ذ',
     'ر', 'ز', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ', 'ع', 'غ',
@@ -24,7 +25,7 @@ if os.path.exists("class_names.txt"):
     print(f"Loaded {len(class_names)} classes from class_names.txt")
 else:
     class_names = class_names_default
-    print("class_names.txt not found, so using hardcoded lsit")
+    print("class_names.txt not found, so using hardcoded list")
 
 print(f"{len(class_names)} classes ready")
 
@@ -52,6 +53,7 @@ def landmarks_to_training_space(hand_landmarks, frame_w, frame_h) -> np.ndarray:
 
 NOTO_PATH = "NotoNaskhArabic-Regular.ttf"
 if not os.path.exists(NOTO_PATH):
+    print("Downloading Noto Naskh Arabic font...")
     try:
         urllib.request.urlretrieve(
             "https://github.com/google/fonts/raw/main/ofl/notonaskharabic/NotoNaskhArabic-Regular.ttf",
@@ -60,6 +62,7 @@ if not os.path.exists(NOTO_PATH):
         print("✅ Font downloaded!")
     except Exception as e:
         print(f"Download failed: {e}")
+        print("Manually place NotoNaskhArabic-Regular.ttf in this folder.")
 
 FONT_PATHS = [
     NOTO_PATH,
@@ -73,11 +76,11 @@ def load_font(size):
     for path in FONT_PATHS:
         try:
             f = ImageFont.truetype(path, size)
-            print(f"✅ Font: {path} @ {size}px")
+            print(f"Font: {path} @ {size}px")
             return f
         except Exception:
             continue
-    print(f"⚠️  No font found at {size}px, using PIL default")
+    print(f"No font found at {size}px, using PIL default")
     return ImageFont.load_default()
 
 font_large  = load_font(80)
@@ -127,12 +130,9 @@ cap.set(cv2.CAP_PROP_FRAME_WIDTH,  1280)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT,  720)
 
 if not cap.isOpened():
-    print("Could not open webcam")
+    print("Cannot not open webcam")
     exit()
 
-print("PSL to Subtitle")
-print("Show your RIGHT hand to the camera")
-print("Press 'q' to quit\n")
 
 while True:
     ret, frame = cap.read()
@@ -163,11 +163,6 @@ while True:
         sign = class_names[idx]
 
         top3 = np.argsort(pred)[::-1][:3]
-        print(
-            f"  {class_names[top3[0]]} {pred[top3[0]]*100:.1f}%  |  "
-            f"{class_names[top3[1]]} {pred[top3[1]]*100:.1f}%  |  "
-            f"{class_names[top3[2]]} {pred[top3[2]]*100:.1f}%"
-        )
 
         if conf >= CONF_THRESHOLD:
             sign_buffer.append((sign, conf))
@@ -190,6 +185,7 @@ while True:
         cv2.putText(frame, "No hand detected", (20, 60),
                     cv2.FONT_HERSHEY_SIMPLEX, 1.1, (0, 0, 220), 2, cv2.LINE_AA)
 
+    
     if subtitle_text and (time.time() - subtitle_ts) < SUBTITLE_HOLD_S:
         bar_h   = 120
         overlay = frame.copy()
@@ -215,7 +211,7 @@ while True:
     cv2.namedWindow("PSL to Subtitles", cv2.WND_PROP_FULLSCREEN)
     cv2.setWindowProperty("PSL to Subtitles",
                           cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-    cv2.imshow("PSL to subtitles", frame)
+    cv2.imshow("PSL to Subtitles", frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
