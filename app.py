@@ -8,7 +8,6 @@ import urllib.request
 import os
 from PIL import Image, ImageDraw, ImageFont
 
-# ── Model ─────────────────────────────────────────────────────────────────────
 print("Loading PSL model...")
 model = tf.keras.models.load_model("psl_alphabet_model.h5")
 print("✅ Model loaded!")
@@ -20,7 +19,6 @@ class_names_default = [
     'ڑ', 'ژ', 'ک', 'گ', 'ہ', 'ی', 'ے'
 ]
 
-# Always load from class_names.txt if available — stays in sync with model
 if os.path.exists("class_names.txt"):
     with open("class_names.txt", encoding="utf-8") as f:
         class_names = [line.strip() for line in f if line.strip()]
@@ -31,9 +29,6 @@ else:
 
 print(f"✅ {len(class_names)} classes ready")
 
-# ── Training data coordinate space ────────────────────────────────────────────
-# The DB stored raw pixel coords with wrist always at (150, 150).
-# No spread scaling was applied during training — just direct pixel offsets.
 
 def landmarks_to_training_space(hand_landmarks, frame_w, frame_h) -> np.ndarray:
     """
@@ -52,12 +47,10 @@ def landmarks_to_training_space(hand_landmarks, frame_w, frame_h) -> np.ndarray:
     if spread > 0:
         coords = coords / spread * 150.0
     coords += 150.0
-    coords = np.clip(coords, 0.0, 300.0)   # keep within training range
+    coords = np.clip(coords, 0.0, 300.0)  
     return coords.flatten().astype(np.float32)
 
 
-# ── Font setup ─────────────────────────────────────────────────────────────────
-# Download Noto Naskh Arabic if not present — best Urdu glyph coverage
 NOTO_PATH = "NotoNaskhArabic-Regular.ttf"
 if not os.path.exists(NOTO_PATH):
     print("⬇️  Downloading Noto Naskh Arabic font...")
@@ -102,7 +95,6 @@ def put_urdu(frame_bgr, text, xy, font, color=(255, 255, 255)):
     return cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
 
 
-# ── MediaPipe ──────────────────────────────────────────────────────────────────
 mp_hands   = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 mp_styles  = mp.solutions.drawing_styles
@@ -115,7 +107,6 @@ hands = mp_hands.Hands(
     model_complexity=1,
 )
 
-# ── Settings ───────────────────────────────────────────────────────────────────
 CONF_THRESHOLD   = 40.0
 SMOOTHING_WINDOW = 10
 SUBTITLE_HOLD_S  = 2.0
@@ -134,7 +125,6 @@ def majority_vote(buf):
     return best, float(np.mean(confs))
 
 
-# ── Webcam ─────────────────────────────────────────────────────────────────────
 cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH,  1280)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT,  720)
@@ -147,7 +137,6 @@ print("\n🎥 PSL Live — Pakistan Sign Language")
 print("Show your RIGHT hand to the camera")
 print("Press 'q' to quit\n")
 
-# ── Main loop ──────────────────────────────────────────────────────────────────
 while True:
     ret, frame = cap.read()
     if not ret:
@@ -170,14 +159,12 @@ while True:
             mp_styles.get_default_hand_connections_style(),
         )
 
-        # Convert to training coordinate space
         kp   = landmarks_to_training_space(hand_lms, w, h)
         pred = model.predict(kp.reshape(1, 42), verbose=0)[0]
         idx  = int(np.argmax(pred))
         conf = float(pred[idx]) * 100.0
         sign = class_names[idx]
 
-        # Console: top-3
         top3 = np.argsort(pred)[::-1][:3]
         print(
             f"  {class_names[top3[0]]} {pred[top3[0]]*100:.1f}%  |  "
@@ -188,13 +175,12 @@ while True:
         if conf >= CONF_THRESHOLD:
             sign_buffer.append((sign, conf))
 
-    # Smoothing
+    
     smooth_sign, smooth_conf = majority_vote(sign_buffer)
     if smooth_sign and smooth_conf >= CONF_THRESHOLD:
         subtitle_text = smooth_sign
         subtitle_ts   = time.time()
 
-    # ── Overlays ───────────────────────────────────────────────────────────────
     if sign:
         color_bgr = (0, 200, 0) if conf >= CONF_THRESHOLD else (0, 140, 255)
         color_rgb = (0, 200, 0) if conf >= CONF_THRESHOLD else (255, 140, 0)
