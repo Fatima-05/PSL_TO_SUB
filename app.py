@@ -10,7 +10,6 @@ from PIL import Image, ImageDraw, ImageFont
 
 print("Loading PSL model...")
 model = tf.keras.models.load_model("psl_alphabet_model.h5")
-print("✅ Model loaded!")
 
 class_names_default = [
     'ء', 'ا', 'ب', 'ت', 'ث', 'ج', 'ح', 'خ', 'د', 'ذ',
@@ -22,12 +21,12 @@ class_names_default = [
 if os.path.exists("class_names.txt"):
     with open("class_names.txt", encoding="utf-8") as f:
         class_names = [line.strip() for line in f if line.strip()]
-    print(f"✅ Loaded {len(class_names)} classes from class_names.txt")
+    print(f"Loaded {len(class_names)} classes from class_names.txt")
 else:
     class_names = class_names_default
-    print("⚠️  class_names.txt not found, using hardcoded list")
+    print("class_names.txt not found, so using hardcoded lsit")
 
-print(f"✅ {len(class_names)} classes ready")
+print(f"{len(class_names)} classes ready")
 
 
 def landmarks_to_training_space(hand_landmarks, frame_w, frame_h) -> np.ndarray:
@@ -53,7 +52,6 @@ def landmarks_to_training_space(hand_landmarks, frame_w, frame_h) -> np.ndarray:
 
 NOTO_PATH = "NotoNaskhArabic-Regular.ttf"
 if not os.path.exists(NOTO_PATH):
-    print("⬇️  Downloading Noto Naskh Arabic font...")
     try:
         urllib.request.urlretrieve(
             "https://github.com/google/fonts/raw/main/ofl/notonaskharabic/NotoNaskhArabic-Regular.ttf",
@@ -61,8 +59,7 @@ if not os.path.exists(NOTO_PATH):
         )
         print("✅ Font downloaded!")
     except Exception as e:
-        print(f"❌ Download failed: {e}")
-        print("   Manually place NotoNaskhArabic-Regular.ttf in this folder.")
+        print(f"Download failed: {e}")
 
 FONT_PATHS = [
     NOTO_PATH,
@@ -130,10 +127,10 @@ cap.set(cv2.CAP_PROP_FRAME_WIDTH,  1280)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT,  720)
 
 if not cap.isOpened():
-    print("❌ Could not open webcam")
+    print("Could not open webcam")
     exit()
 
-print("\n🎥 PSL Live — Pakistan Sign Language")
+print("PSL to Subtitle")
 print("Show your RIGHT hand to the camera")
 print("Press 'q' to quit\n")
 
@@ -193,7 +190,6 @@ while True:
         cv2.putText(frame, "No hand detected", (20, 60),
                     cv2.FONT_HERSHEY_SIMPLEX, 1.1, (0, 0, 220), 2, cv2.LINE_AA)
 
-    # Subtitle bar
     if subtitle_text and (time.time() - subtitle_ts) < SUBTITLE_HOLD_S:
         bar_h   = 120
         overlay = frame.copy()
@@ -216,10 +212,10 @@ while True:
     cv2.putText(frame, "Q: quit", (w - 110, 30),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (160, 160, 160), 1, cv2.LINE_AA)
 
-    cv2.namedWindow("PSL Live — Pakistan Sign Language", cv2.WND_PROP_FULLSCREEN)
-    cv2.setWindowProperty("PSL Live — Pakistan Sign Language",
+    cv2.namedWindow("PSL to Subtitles", cv2.WND_PROP_FULLSCREEN)
+    cv2.setWindowProperty("PSL to Subtitles",
                           cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-    cv2.imshow("PSL Live — Pakistan Sign Language", frame)
+    cv2.imshow("PSL to subtitles", frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
