@@ -13,6 +13,10 @@ Target Variable: Urdu alphabet letter (37 classes)
 MediaPipe Hands (real-time hand landmark detection)
 Neural Network (Dense + BatchNorm layers for sign classification)
 
+### Resources
+- Dataset: [Pakistan Sign Language Dataset (OpenPose)](https://www.kaggle.com/datasets/saadbutt27/pakistan-sign-language-dataset-openpose) by Saad Butt
+- Font: [Noto Naskh Arabic](https://fonts.google.com/noto/specimen/Noto+Naskh+Arabic) by Google Fonts — used for Urdu subtitle rendering
+
 ## Setup
 
 ```bash
@@ -33,4 +37,6 @@ python app.py
 ```
 Show your right hand to the camera. Press **Q** to quit.
 
-The font for Urdu text downloads automatically on first run.
+The font for Urdu text downloads automatically
+
+
