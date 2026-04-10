@@ -8,7 +8,6 @@ import urllib.request
 import os
 from PIL import Image, ImageDraw, ImageFont
 
-print("Loading PSL model...")
 model = tf.keras.models.load_model("psl_alphabet_model.h5")
 
 
