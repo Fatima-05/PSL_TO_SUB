@@ -148,7 +148,7 @@ while True:
 
         kp = landmarks_to_training_space(hand_lms, w, h)
         pred = model.predict(kp.reshape(1, 42), verbose=0)[0]
-        idx  = int(np.argmax(pred))
+        idx = int(np.argmax(pred))
         conf = float(pred[idx]) * 100.0
         sign = class_names[idx]
 
