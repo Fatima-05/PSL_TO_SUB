@@ -52,16 +52,15 @@ def landmarks_to_training_space(hand_landmarks, frame_w, frame_h) -> np.ndarray:
 
 NOTO_PATH = "NotoNaskhArabic-Regular.ttf"
 if not os.path.exists(NOTO_PATH):
-    print("Downloading Noto Naskh Arabic font...")
     try:
         urllib.request.urlretrieve(
             "https://github.com/google/fonts/raw/main/ofl/notonaskharabic/NotoNaskhArabic-Regular.ttf",
             NOTO_PATH
         )
-        print("✅ Font downloaded!")
+        print("Font downloaded")
     except Exception as e:
         print(f"Download failed: {e}")
-        print("Manually place NotoNaskhArabic-Regular.ttf in this folder.")
+        print("Manually place NotoNaskhArabic-Regular.ttf in folder")
 
 FONT_PATHS = [
     NOTO_PATH,
@@ -79,7 +78,7 @@ def load_font(size):
             return f
         except Exception:
             continue
-    print(f"No font found at {size}px, using PIL default")
+    print(f"No font found at {size}px so using PIL default")
     return ImageFont.load_default()
 
 font_large  = load_font(80)
@@ -87,7 +86,6 @@ font_medium = load_font(44)
 
 
 def put_urdu(frame_bgr, text, xy, font, color=(255, 255, 255)):
-    """Render Unicode/Urdu text onto a BGR OpenCV frame via PIL."""
     pil_img = Image.fromarray(cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB))
     draw    = ImageDraw.Draw(pil_img)
     draw.text(xy, text, font=font, fill=color)
@@ -129,7 +127,7 @@ cap.set(cv2.CAP_PROP_FRAME_WIDTH,  1280)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT,  720)
 
 if not cap.isOpened():
-    print("Cannot not open webcam")
+    print("Can't open webcam")
     exit()
 
 
@@ -155,7 +153,7 @@ while True:
             mp_styles.get_default_hand_connections_style(),
         )
 
-        kp   = landmarks_to_training_space(hand_lms, w, h)
+        kp = landmarks_to_training_space(hand_lms, w, h)
         pred = model.predict(kp.reshape(1, 42), verbose=0)[0]
         idx  = int(np.argmax(pred))
         conf = float(pred[idx]) * 100.0
@@ -170,7 +168,7 @@ while True:
     smooth_sign, smooth_conf = majority_vote(sign_buffer)
     if smooth_sign and smooth_conf >= CONF_THRESHOLD:
         subtitle_text = smooth_sign
-        subtitle_ts   = time.time()
+        subtitle_ts = time.time()
 
     if sign:
         color_bgr = (0, 200, 0) if conf >= CONF_THRESHOLD else (0, 140, 255)
@@ -217,4 +215,3 @@ while True:
 cap.release()
 hands.close()
 cv2.destroyAllWindows()
-print("Program closed.")
