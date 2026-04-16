@@ -11,7 +11,7 @@ from PIL import Image, ImageDraw, ImageFont
 model = tf.keras.models.load_model("psl_alphabet_model.h5")
 
 #class names list in case .txt file is missing 
-class_names_default = [
+class_names_default =[
     'ء', 'ا', 'ب', 'ت', 'ث', 'ج', 'ح', 'خ', 'د', 'ذ',
     'ر', 'ز', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ', 'ع', 'غ',
     'ف', 'ق', 'ل', 'م', 'ن', 'و', 'ٹ', 'پ', 'چ', 'ڈ',
@@ -21,14 +21,14 @@ class_names_default = [
 if os.path.exists("class_names.txt"):
     with open("class_names.txt", encoding="utf-8") as f:
         class_names = [line.strip() for line in f if line.strip()]
-    print(f"Loaded {len(class_names)} classes from class_names.txt")
+    print(f"loaded {len(class_names)} classes from class_names.txt :D")
 else:
     class_names = class_names_default
-    print("class_names.txt not found, so using hardcoded list")
+    print("class_names.txt not found :( so using hardcoded list")
 
-print(f"{len(class_names)} classes ready")
+print(f"{len(class_names)} classes ready :D")
 
-# must match normalise_sample() used during training
+#must match normalise_sample() used during training
 def landmarks_to_training_space(hand_landmarks, frame_w, frame_h) -> np.ndarray:
     coords = np.array(
         [[lm.x * frame_w, lm.y * frame_h] for lm in hand_landmarks.landmark],
@@ -52,10 +52,10 @@ if not os.path.exists(NOTO_PATH):
         )
         print("Font downloaded")
     except Exception as e:
-        print(f"Download failed: {e}")
-        print("Manually place NotoNaskhArabic-Regular.ttf in folder")
+        print(f"download failed: {e} :(")
+        print("manually place NotoNaskhArabic-Regular.ttf in folder :(")
 
-FONT_PATHS = [
+FONT_PATHS =[
     NOTO_PATH,
     "C:/Windows/Fonts/Nirmala.ttf",
     "C:/Windows/Fonts/segoeui.ttf",
@@ -67,11 +67,11 @@ def load_font(size):
     for path in FONT_PATHS:
         try:
             f = ImageFont.truetype(path, size)
-            print(f"Font: {path} @ {size}px")
+            print(f"font: {path} @ {size}px")
             return f
         except Exception:
             continue
-    print(f"No font found at {size}px so using PIL default")
+    print(f"no font found at {size}px so using PIL default :(")
     return ImageFont.load_default()
 
 font_large = load_font(80)
@@ -110,7 +110,7 @@ def majority_vote(buf):
     if not buf:
         return None, 0.0
     signs = [s for s, _ in buf]
-    best  = max(set(signs), key=signs.count)
+    best = max(set(signs), key=signs.count)
     confs = [c for s, c in buf if s == best]
     return best, float(np.mean(confs))
 
@@ -120,7 +120,7 @@ cap.set(cv2.CAP_PROP_FRAME_WIDTH,  1280)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT,  720)
 
 if not cap.isOpened():
-    print("Can't open webcam")
+    print("can't open webcam")
     exit()
 
 
@@ -172,7 +172,7 @@ while True:
                     cv2.FONT_HERSHEY_SIMPLEX, 0.9, color_bgr, 2, cv2.LINE_AA)
         frame = put_urdu(frame, sign, (130, 10), font_medium, color=color_rgb)
     else:
-        cv2.putText(frame, "No hand detected", (20, 60),
+        cv2.putText(frame, "no hand detected", (20, 60),
                     cv2.FONT_HERSHEY_SIMPLEX, 1.1, (0, 0, 220), 2, cv2.LINE_AA)
 
     #sub bar
