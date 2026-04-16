@@ -10,7 +10,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 model = tf.keras.models.load_model("psl_alphabet_model.h5")
 
-
+#class names list in case .txt file is missing 
 class_names_default = [
     'ء', 'ا', 'ب', 'ت', 'ث', 'ج', 'ح', 'خ', 'د', 'ذ',
     'ر', 'ز', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ', 'ع', 'غ',
@@ -28,15 +28,8 @@ else:
 
 print(f"{len(class_names)} classes ready")
 
-
+# must match normalise_sample() used during training
 def landmarks_to_training_space(hand_landmarks, frame_w, frame_h) -> np.ndarray:
-    """
-    Matches normalise_sample() in train_psl.py exactly:
-      1. Translate so wrist is at origin
-      2. Scale so hand spread fits ±150px
-      3. Shift wrist to (150, 150)
-      4. Clamp to [0, 300] to handle hands too close to camera
-    """
     coords = np.array(
         [[lm.x * frame_w, lm.y * frame_h] for lm in hand_landmarks.landmark],
         dtype=np.float32
@@ -49,7 +42,7 @@ def landmarks_to_training_space(hand_landmarks, frame_w, frame_h) -> np.ndarray:
     coords = np.clip(coords, 0.0, 300.0)  
     return coords.flatten().astype(np.float32)
 
-
+#download font path if it's nto present
 NOTO_PATH = "NotoNaskhArabic-Regular.ttf"
 if not os.path.exists(NOTO_PATH):
     try:
@@ -81,20 +74,20 @@ def load_font(size):
     print(f"No font found at {size}px so using PIL default")
     return ImageFont.load_default()
 
-font_large  = load_font(80)
+font_large = load_font(80)
 font_medium = load_font(44)
 
-
+#using PIL to read urdu text
 def put_urdu(frame_bgr, text, xy, font, color=(255, 255, 255)):
     pil_img = Image.fromarray(cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB))
-    draw    = ImageDraw.Draw(pil_img)
+    draw = ImageDraw.Draw(pil_img)
     draw.text(xy, text, font=font, fill=color)
     return cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
 
 
-mp_hands   = mp.solutions.hands
+mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
-mp_styles  = mp.solutions.drawing_styles
+mp_styles = mp.solutions.drawing_styles
 
 hands = mp_hands.Hands(
     static_image_mode=False,
@@ -104,13 +97,13 @@ hands = mp_hands.Hands(
     model_complexity=1,
 )
 
-CONF_THRESHOLD   = 40.0
+CONF_THRESHOLD = 40.0
 SMOOTHING_WINDOW = 10
-SUBTITLE_HOLD_S  = 2.0
+SUBTITLE_HOLD_S = 2.0
 
-sign_buffer   = collections.deque(maxlen=SMOOTHING_WINDOW)
+sign_buffer = collections.deque(maxlen=SMOOTHING_WINDOW)
 subtitle_text = ""
-subtitle_ts   = 0.0
+subtitle_ts = 0.0
 
 
 def majority_vote(buf):
@@ -137,9 +130,9 @@ while True:
         break
 
     frame = cv2.flip(frame, 1)
-    h, w  = frame.shape[:2]
+    h, w = frame.shape[:2]
 
-    rgb    = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     result = hands.process(rgb)
 
     sign, conf = None, 0.0
@@ -182,15 +175,15 @@ while True:
         cv2.putText(frame, "No hand detected", (20, 60),
                     cv2.FONT_HERSHEY_SIMPLEX, 1.1, (0, 0, 220), 2, cv2.LINE_AA)
 
-    
+    #sub bar
     if subtitle_text and (time.time() - subtitle_ts) < SUBTITLE_HOLD_S:
-        bar_h   = 120
+        bar_h = 120
         overlay = frame.copy()
         cv2.rectangle(overlay, (0, h - bar_h), (w, h), (0, 0, 0), -1)
         cv2.addWeighted(overlay, 0.65, frame, 0.35, 0, frame)
 
         try:
-            bbox  = font_large.getbbox(subtitle_text)
+            bbox = font_large.getbbox(subtitle_text)
             char_w = bbox[2] - bbox[0]
         except Exception:
             char_w = 60
